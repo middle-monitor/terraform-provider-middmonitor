@@ -1,0 +1,20 @@
+# --- Middle Monitor API ---
+base_url     = "https://monitor.example.com"
+org_slug     = "default"
+access_token = "eyJhbGci..." # JWT or "mm_..." API key
+
+# Receiver reachable FROM the target machine (not localhost).
+receiver_base_url = "https://receiver.middlemonitor.io"
+
+# --- Target machine ---
+host_name    = "app-server-01"
+host_address = "10.0.1.50"
+
+# --- SSH ---
+ssh_user = "ubuntu"
+
+# Private key auth (default) ...
+ssh_private_key_path = "~/.ssh/id_rsa"
+
+# ... or password auth (leave ssh_private_key_path empty if used).
+# ssh_password = "secret"
