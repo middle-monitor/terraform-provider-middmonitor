@@ -66,12 +66,12 @@ func (c *Client) doJSON(method, url string, body any, out any) (int, error) {
 	raw, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode >= 400 {
-		return resp.StatusCode, fmt.Errorf("API %s %s: %s", method, url, string(raw))
+		return resp.StatusCode, &APIError{Method: method, URL: url, StatusCode: resp.StatusCode, Body: string(raw)}
 	}
 
 	if out != nil && len(raw) > 0 && string(raw) != "null" {
 		if err := json.Unmarshal(raw, out); err != nil {
-			return resp.StatusCode, fmt.Errorf("decode: %w (body: %s)", err, truncate(string(raw), 500))
+			return resp.StatusCode, &DecodeError{Cause: err, Body: truncate(string(raw), 500)}
 		}
 	}
 	return resp.StatusCode, nil
@@ -169,7 +169,7 @@ func (c *Client) DeleteHost(id int64) error {
 	defer resp.Body.Close()
 	raw, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("delete host: %s", string(raw))
+		return &APIError{Method: http.MethodDelete, URL: c.orgURL(fmt.Sprintf("/hosts/%d", id)), StatusCode: resp.StatusCode, Body: string(raw)}
 	}
 	return nil
 }
@@ -205,7 +205,7 @@ func (c *Client) DeleteService(id int64) error {
 	defer resp.Body.Close()
 	raw, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("delete service: %s", string(raw))
+		return &APIError{Method: http.MethodDelete, URL: c.orgURL(fmt.Sprintf("/services/%d", id)), StatusCode: resp.StatusCode, Body: string(raw)}
 	}
 	return nil
 }
@@ -235,7 +235,7 @@ func (c *Client) DeleteInstallToken(id int64) error {
 	defer resp.Body.Close()
 	raw, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("delete install token: %s", string(raw))
+		return &APIError{Method: http.MethodDelete, URL: c.orgURL(fmt.Sprintf("/install-tokens/%d", id)), StatusCode: resp.StatusCode, Body: string(raw)}
 	}
 	return nil
 }
