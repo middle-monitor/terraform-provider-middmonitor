@@ -16,10 +16,9 @@ variable "middmonitor_access_token" {
 }
 
 provider "middmonitor" {
-  base_url     = "https://monitor.example.com"
+  base_url     = "https://api.middlemonitor.io"
   org_slug     = "default"
   access_token = var.middmonitor_access_token
-  # receiver_base_url = "https://receiver.middlemonitor.io" # if needed
 }
 
 data "middmonitor_organization" "current" {}

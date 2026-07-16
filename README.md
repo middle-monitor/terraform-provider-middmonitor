@@ -24,7 +24,7 @@ Terraform provider to drive [Middle Monitor](https://github.com/middle-monitor/m
 
 - **Terraform** >= 1.0
 - A **JWT** to access the Middle Monitor dashboard (e.g. via `POST /api/v1/auth/login` with email / password)
-- The dashboard **base URL** (JSON API), without a trailing slash, e.g. `https://monitor.example.com`
+- The dashboard **base URL** (JSON API), without a trailing slash, e.g. `https://api.middlemonitor.io`
 - The **organization slug** used in API URLs (`/api/v1/organizations/{slug}/...`), often `default`
 
 The two URLs can differ if the **receiver** (agent download, install script) is exposed separately from the dashboard: in that case use `receiver_base_url`.
@@ -77,12 +77,9 @@ terraform {
 }
 
 provider "middmonitor" {
-  base_url      = "https://monitor.example.com"
+  base_url      = "https://api.middlemonitor.io"
   org_slug      = "default"
   access_token  = var.middmonitor_access_token # or via an environment variable
-
-  # Optional: if the receiver is not on the same origin as the dashboard
-  # receiver_base_url = "https://receiver.middlemonitor.io"
 }
 ```
 

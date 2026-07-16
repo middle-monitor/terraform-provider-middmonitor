@@ -1,5 +1,5 @@
 variable "base_url" {
-  description = "Base URL of the Middle Monitor dashboard (e.g. https://monitor.example.com)"
+  description = "Base URL of the Middle Monitor dashboard (e.g. https://api.middlemonitor.io)"
   type        = string
 }
 

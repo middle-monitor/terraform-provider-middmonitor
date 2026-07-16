@@ -35,7 +35,7 @@ func (p *middmonitorProvider) Schema(_ context.Context, _ provider.SchemaRequest
 		MarkdownDescription: "Configure access to the [Middle Monitor](https://github.com/middle-monitor) dashboard API (JWT).",
 		Attributes: map[string]schema.Attribute{
 			"base_url": schema.StringAttribute{
-				MarkdownDescription: "Base URL of the **dashboard API** (e.g. `https://monitor.example.com`), without trailing slash. Falls back to `MIDDLE_MONITOR_BASE_URL`.",
+				MarkdownDescription: "Base URL of the **dashboard API** (e.g. `https://api.middlemonitor.io`), without trailing slash. Falls back to `MIDDLE_MONITOR_BASE_URL`.",
 				Optional:            true,
 			},
 			"org_slug": schema.StringAttribute{

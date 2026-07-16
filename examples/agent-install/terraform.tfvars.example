@@ -1,10 +1,11 @@
 # --- Middle Monitor API ---
-base_url     = "https://monitor.example.com"
+base_url     = "https://api.middlemonitor.io"
 org_slug     = "default"
 access_token = "eyJhbGci..." # JWT or "mm_..." API key
 
-# Receiver reachable FROM the target machine (not localhost).
-receiver_base_url = "https://receiver.middlemonitor.io"
+# Optional: only when the receiver is exposed on a different origin than
+# base_url. Left empty, agent downloads use base_url.
+# receiver_base_url = ""
 
 # --- Target machine ---
 host_name    = "app-server-01"
