@@ -4,6 +4,8 @@ Terraform provider to drive [Middle Monitor](https://github.com/middle-monitor/m
 
 **Provider address:** `registry.terraform.io/middle-monitor/middmonitor`
 
+**Documentation:** [middlemonitor.io/docs#terraform-setup](https://middlemonitor.io/docs#terraform-setup)
+
 ---
 
 ## Table of contents
