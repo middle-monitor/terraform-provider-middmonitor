@@ -348,4 +348,11 @@ go test ./...
 go build -o terraform-provider-middmonitor .
 ```
 
+`docs/` is what the Terraform Registry publishes; it is generated from the schemas
+and from `examples/`, so regenerate it whenever either changes, before tagging a release.
+
+```bash
+make docs
+```
+
 License: aligned with the parent Middle Monitor repository.
