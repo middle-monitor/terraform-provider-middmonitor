@@ -41,16 +41,20 @@ func (d *organizationDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 		MarkdownDescription: "Reads the current organization (from JWT + `org_slug` in the provider).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
-				Computed: true,
+				MarkdownDescription: "Organization ID.",
+				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				Computed: true,
+				MarkdownDescription: "Organization display name.",
+				Computed:            true,
 			},
 			"slug": schema.StringAttribute{
-				Computed: true,
+				MarkdownDescription: "Organization slug, the URL segment used by the API.",
+				Computed:            true,
 			},
 			"plan": schema.StringAttribute{
-				Computed: true,
+				MarkdownDescription: "Subscription plan of the organization, e.g. `free` or `pro`.",
+				Computed:            true,
 			},
 		},
 	}

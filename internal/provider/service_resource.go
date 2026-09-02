@@ -46,7 +46,8 @@ func (r *serviceResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 		MarkdownDescription: "A health check or monitored service attached to a `middmonitor_host`.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
-				Computed: true,
+				MarkdownDescription: "Service ID.",
+				Computed:            true,
 			},
 			"host_id": schema.Int64Attribute{
 				MarkdownDescription: "Parent host ID.",
@@ -54,8 +55,9 @@ func (r *serviceResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
 			},
 			"name": schema.StringAttribute{
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				MarkdownDescription: "Check name, unique per host. **Cannot be changed** after create.",
+				Required:            true,
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "Check type: `http`, `ping`, `sql`, `certificate`, `snmp`, etc.",
@@ -84,8 +86,9 @@ func (r *serviceResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Computed:            true,
 			},
 			"max_attempts": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
+				MarkdownDescription: "Retries inside one check cycle before the check is reported as failed (2s, 4s then 8s apart).",
+				Optional:            true,
+				Computed:            true,
 			},
 			"failure_threshold": schema.Float64Attribute{
 				MarkdownDescription: "Legacy single threshold (e.g. max latency ms for HTTP). Prefer the two-level `warning_threshold` / `critical_threshold`.",
@@ -105,7 +108,8 @@ func (r *serviceResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Optional:            true,
 			},
 			"created_at": schema.StringAttribute{
-				Computed: true,
+				MarkdownDescription: "Creation timestamp (RFC3339).",
+				Computed:            true,
 			},
 		},
 	}

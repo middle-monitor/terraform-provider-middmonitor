@@ -45,7 +45,8 @@ func (r *installTokenResource) Schema(_ context.Context, _ resource.SchemaReques
 		MarkdownDescription: "Creates an **install token** for the agent (receiver API). The secret is shown once; store it in Terraform state or a secret manager.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
-				Computed: true,
+				MarkdownDescription: "Install token ID.",
+				Computed:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Label for this token in the UI.",
@@ -67,7 +68,8 @@ func (r *installTokenResource) Schema(_ context.Context, _ resource.SchemaReques
 				Computed:            true,
 			},
 			"created_at": schema.StringAttribute{
-				Computed: true,
+				MarkdownDescription: "Creation timestamp (RFC3339).",
+				Computed:            true,
 			},
 		},
 	}
