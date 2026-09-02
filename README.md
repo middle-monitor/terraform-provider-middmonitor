@@ -139,8 +139,78 @@ Service / health check attached to a host.
 | `service` | Logical label (consistent with the host). |
 | `path` | HTTP path for `http` type. |
 | `credentials` | Optional JSON (auth, SQL, SNMP, etc.) - **sensitive**. |
-| `service_interval`, `max_attempts`, `failure_threshold` | Optional; defaults on the API side / state after read. |
+| `service_interval`, `max_attempts` | Optional; defaults on the API side / state after read. |
+| `failure_threshold` | Legacy single threshold. Prefer the two below. |
+| `warning_threshold`, `critical_threshold` | Two-level thresholds: warning then critical (e.g. latency in ms). |
 | `created_at` | Computed. |
+
+### `middmonitor_host_group` (resource)
+
+A group of hosts. Alert correlation is scoped to a host and its group, so the grouping is structural rather than cosmetic.
+
+| Attribute | Notes |
+|----------|--------|
+| `id` | Computed. |
+| `name` | Technical name, unique per organization. |
+| `display_name` | Optional label shown in the UI. |
+| `is_default` | Computed: whether this is the organization default group. |
+
+### `middmonitor_alert_rule` (resource)
+
+A threshold rule evaluated every minute.
+
+| Attribute | Notes |
+|----------|--------|
+| `id` | Computed. |
+| `name` | Becomes the incident title. |
+| `metric` | Built-in signal: `cpu`, `ram`, `disk`, `latency`, `error_count`, `failure_rate`. |
+| `custom_metric` | A scraped or SDK-reported series, e.g. `node_load1`. This is how you alert on anything the agent pulls. |
+| `custom_labels` | Map of label equality constraints narrowing the custom series. |
+| `target_type`, `target_id` | `any` (default), `service` or `host`, plus the id it is scoped to. |
+| `aggregation` | `avg` (default), `min`, `max`, `sum`, `p50`...`p99`. |
+| `operator` | `gt`, `gte`, `lt`, `lte`, `eq`. |
+| `threshold` | Single threshold; ignored when the two-level ones are set. |
+| `warning_threshold`, `critical_threshold` | Two-level thresholds. Critical wins over warning. |
+| `recovery_threshold` | Hysteresis: the incident resolves only once the value crosses back past this. |
+| `duration` | Evaluation window in seconds (default 300). |
+| `enabled`, `notify_warning`, `notify_critical` | Default `true`. |
+| `channels` | List of notification channel IDs. Empty means every enabled channel. |
+
+### `middmonitor_notification_channel` (resource)
+
+Where alerts are delivered.
+
+| Attribute | Notes |
+|----------|--------|
+| `id` | Computed. |
+| `name` | Channel name. |
+| `type` | `email`, `slack`, `webhook`, `jsm`, `whatsapp`. |
+| `config` | JSON object (`jsonencode({...})`) - **sensitive**. The accepted keys depend on `type`. |
+| `enabled` | Defaults to `true`. |
+
+For a webhook, `config` accepts `webhook_url`, `secret` (HMAC key), `format`
+(`slack` by default, `structured` for the typed payload), `headers`, and the
+anti-burst settings `group_by`, `group_wait` and `repeat_interval`. It is a JSON
+string rather than a typed block because the keys differ per channel type; the
+provider validates that it parses as an object.
+
+**Read:** the API does not return secrets, so the configured `config` string
+stays in state as written. A drift on the platform side is not detected.
+
+### `middmonitor_maintenance_window` (resource)
+
+Suppresses alerts on one target for a period.
+
+| Attribute | Notes |
+|----------|--------|
+| `id` | Computed. |
+| `name` | Why the window exists. **Forced replacement** if changed. |
+| `target_type` | `service` or `host`. **Forced replacement**. |
+| `target_id` | ID of the service or host. **Forced replacement**. |
+| `starts_at`, `ends_at` | RFC3339. **Forced replacement**. |
+
+The API has no update for maintenance windows, so every attribute forces a
+replacement rather than pretending an in-place edit happened.
 
 ### `middmonitor_install_token` (resource)
 
@@ -178,6 +248,7 @@ This data source **runs nothing** on your servers: it is up to you to inject the
 ## Full example
 
 - [`examples/basic/`](examples/basic/) - core resources + agent install URLs (no remote execution).
+- [`examples/alerting/`](examples/alerting/) - host group, structured webhook channel, a rule on a scraped series, two-level check thresholds and a maintenance window.
 - [`examples/agent-install/`](examples/agent-install/) - full flow **with agent installation over SSH** (`remote-exec`): host, token, `agent_install` data source, checks, and agent bootstrap on the target machine.
 
 ---
@@ -239,8 +310,12 @@ Ready-to-use example: [`examples/agent-install/`](examples/agent-install/).
 | Resource | Command |
 |-----------|----------|
 | Host | `terraform import middmonitor_host.name <id>` |
+| Host group | `terraform import middmonitor_host_group.name <id>` |
 | Service | `terraform import middmonitor_service.name <id>` |
 | Token | `terraform import middmonitor_install_token.name <id>` |
+| Alert rule | `terraform import middmonitor_alert_rule.name <id>` |
+| Notification channel | `terraform import middmonitor_notification_channel.name <id>` |
+| Maintenance window | `terraform import middmonitor_maintenance_window.name <id>` |
 
 IDs are the numeric identifiers returned by the API.
 

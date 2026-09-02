@@ -59,7 +59,7 @@ func (r *serviceResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "Check type: `http`, `ping`, `sql`, `certificate`, `snmp`, etc.",
-				Required:              true,
+				Required:            true,
 			},
 			"hostname": schema.StringAttribute{
 				MarkdownDescription: "Target for the check (IP/hostname); often matches the parent host’s address.",
@@ -88,9 +88,17 @@ func (r *serviceResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Computed: true,
 			},
 			"failure_threshold": schema.Float64Attribute{
-				MarkdownDescription: "Optional threshold (e.g. max latency ms for HTTP).",
+				MarkdownDescription: "Legacy single threshold (e.g. max latency ms for HTTP). Prefer the two-level `warning_threshold` / `critical_threshold`.",
 				Optional:            true,
 				Computed:            true,
+			},
+			"warning_threshold": schema.Float64Attribute{
+				MarkdownDescription: "Raises a warning-severity alert when crossed (e.g. latency ms).",
+				Optional:            true,
+			},
+			"critical_threshold": schema.Float64Attribute{
+				MarkdownDescription: "Raises a critical-severity alert when crossed. Wins over the warning threshold.",
+				Optional:            true,
 			},
 			"expected_status_code": schema.Int64Attribute{
 				MarkdownDescription: "For `http` checks: exact HTTP status code to treat as success. When unset, any 2xx response is a success (default).",
@@ -104,17 +112,19 @@ func (r *serviceResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 }
 
 type serviceModel struct {
-	ID                types.Int64   `tfsdk:"id"`
-	HostID            types.Int64   `tfsdk:"host_id"`
-	Name              types.String  `tfsdk:"name"`
-	Type              types.String  `tfsdk:"type"`
-	Hostname          types.String  `tfsdk:"hostname"`
-	Service           types.String  `tfsdk:"service"`
-	Path              types.String  `tfsdk:"path"`
-	Credentials       types.String  `tfsdk:"credentials"`
+	ID                 types.Int64   `tfsdk:"id"`
+	HostID             types.Int64   `tfsdk:"host_id"`
+	Name               types.String  `tfsdk:"name"`
+	Type               types.String  `tfsdk:"type"`
+	Hostname           types.String  `tfsdk:"hostname"`
+	Service            types.String  `tfsdk:"service"`
+	Path               types.String  `tfsdk:"path"`
+	Credentials        types.String  `tfsdk:"credentials"`
 	ServiceInterval    types.Int64   `tfsdk:"service_interval"`
 	MaxAttempts        types.Int64   `tfsdk:"max_attempts"`
 	FailureThreshold   types.Float64 `tfsdk:"failure_threshold"`
+	WarningThreshold   types.Float64 `tfsdk:"warning_threshold"`
+	CriticalThreshold  types.Float64 `tfsdk:"critical_threshold"`
 	ExpectedStatusCode types.Int64   `tfsdk:"expected_status_code"`
 	CreatedAt          types.String  `tfsdk:"created_at"`
 }
@@ -153,6 +163,14 @@ func (r *serviceResource) Create(ctx context.Context, req resource.CreateRequest
 	if !plan.FailureThreshold.IsNull() {
 		v := plan.FailureThreshold.ValueFloat64()
 		s.FailureThreshold = &v
+	}
+	if !plan.WarningThreshold.IsNull() {
+		v := plan.WarningThreshold.ValueFloat64()
+		s.WarningThreshold = &v
+	}
+	if !plan.CriticalThreshold.IsNull() {
+		v := plan.CriticalThreshold.ValueFloat64()
+		s.CriticalThreshold = &v
 	}
 	if !plan.ExpectedStatusCode.IsNull() {
 		v := int(plan.ExpectedStatusCode.ValueInt64())
@@ -212,6 +230,14 @@ func (r *serviceResource) Update(ctx context.Context, req resource.UpdateRequest
 	if !plan.FailureThreshold.IsNull() {
 		v := plan.FailureThreshold.ValueFloat64()
 		s.FailureThreshold = &v
+	}
+	if !plan.WarningThreshold.IsNull() {
+		v := plan.WarningThreshold.ValueFloat64()
+		s.WarningThreshold = &v
+	}
+	if !plan.CriticalThreshold.IsNull() {
+		v := plan.CriticalThreshold.ValueFloat64()
+		s.CriticalThreshold = &v
 	}
 	if !plan.ExpectedStatusCode.IsNull() {
 		v := int(plan.ExpectedStatusCode.ValueInt64())
@@ -275,6 +301,16 @@ func mapServiceToModel(out *client.Service, m *serviceModel) {
 	}
 	m.ServiceInterval = types.Int64Value(int64(out.ServiceInterval))
 	m.MaxAttempts = types.Int64Value(int64(out.MaxAttempts))
+	if out.WarningThreshold != nil {
+		m.WarningThreshold = types.Float64Value(*out.WarningThreshold)
+	} else {
+		m.WarningThreshold = types.Float64Null()
+	}
+	if out.CriticalThreshold != nil {
+		m.CriticalThreshold = types.Float64Value(*out.CriticalThreshold)
+	} else {
+		m.CriticalThreshold = types.Float64Null()
+	}
 	if out.FailureThreshold != nil {
 		m.FailureThreshold = types.Float64Value(*out.FailureThreshold)
 	} else {

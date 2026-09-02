@@ -1,6 +1,12 @@
 package client
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+// ErrNotFound is returned when a row the state points at is gone from the API.
+var ErrNotFound = errors.New("resource not found")
 
 // APIError represents a non-OK response from the Middle Monitor API.
 type APIError struct {
