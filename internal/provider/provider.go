@@ -107,8 +107,12 @@ type resourceData struct {
 func (p *middmonitorProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewHostResource,
+		NewHostGroupResource,
 		NewServiceResource,
 		NewInstallTokenResource,
+		NewAlertRuleResource,
+		NewNotificationChannelResource,
+		NewMaintenanceWindowResource,
 	}
 }
 
