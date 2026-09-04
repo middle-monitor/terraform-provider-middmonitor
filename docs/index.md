@@ -3,12 +3,12 @@
 page_title: "middmonitor Provider"
 subcategory: ""
 description: |-
-  Configure access to the Middle Monitor https://github.com/middle-monitor dashboard API (JWT).
+  Configure access to the Middle Monitor https://github.com/middle-monitor dashboard API.
 ---
 
 # middmonitor Provider
 
-Configure access to the [Middle Monitor](https://github.com/middle-monitor) dashboard API (JWT).
+Configure access to the [Middle Monitor](https://github.com/middle-monitor) dashboard API.
 
 ## Example Usage
 
@@ -39,7 +39,7 @@ provider "middmonitor" {
 
 ### Optional
 
-- `access_token` (String, Sensitive) JWT access token from `POST /api/v1/auth/login`. Falls back to `MIDDLE_MONITOR_ACCESS_TOKEN`.
+- `access_token` (String, Sensitive) Organization API key (`mm_…`, from Settings → API Keys) or a JWT access token from `POST /api/v1/auth/login`. Prefer the API key outside an interactive session: a JWT expires after 24 hours. Falls back to `MIDDLE_MONITOR_ACCESS_TOKEN`.
 - `base_url` (String) Base URL of the **dashboard API** (e.g. `https://api.middlemonitor.io`), without trailing slash. Falls back to `MIDDLE_MONITOR_BASE_URL`.
 - `org_slug` (String) Organization slug (URL segment), e.g. `default`. Falls back to `MIDDLE_MONITOR_ORG_SLUG`.
-- `receiver_base_url` (String) Base URL of the **receiver** service (agent downloads, install script). Defaults to `base_url` if empty (monolithic deploy).
+- `receiver_base_url` (String) Base URL of the **receiver** service (agent downloads, install script). Defaults to `base_url` if empty (monolithic deploy). Falls back to `MIDDLE_MONITOR_RECEIVER_BASE_URL`.
