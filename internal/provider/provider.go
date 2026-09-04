@@ -32,7 +32,7 @@ func (p *middmonitorProvider) Metadata(_ context.Context, _ provider.MetadataReq
 
 func (p *middmonitorProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Configure access to the [Middle Monitor](https://github.com/middle-monitor) dashboard API (JWT).",
+		MarkdownDescription: "Configure access to the [Middle Monitor](https://github.com/middle-monitor) dashboard API.",
 		Attributes: map[string]schema.Attribute{
 			"base_url": schema.StringAttribute{
 				MarkdownDescription: "Base URL of the **dashboard API** (e.g. `https://api.middlemonitor.io`), without trailing slash. Falls back to `MIDDLE_MONITOR_BASE_URL`.",
@@ -43,12 +43,13 @@ func (p *middmonitorProvider) Schema(_ context.Context, _ provider.SchemaRequest
 				Optional:            true,
 			},
 			"access_token": schema.StringAttribute{
-				MarkdownDescription: "JWT access token from `POST /api/v1/auth/login`. Falls back to `MIDDLE_MONITOR_ACCESS_TOKEN`.",
-				Optional:            true,
-				Sensitive:           true,
+				MarkdownDescription: "Organization API key (`mm_…`, from Settings → API Keys) or a JWT access token from `POST /api/v1/auth/login`. " +
+					"Prefer the API key outside an interactive session: a JWT expires after 24 hours. Falls back to `MIDDLE_MONITOR_ACCESS_TOKEN`.",
+				Optional:  true,
+				Sensitive: true,
 			},
 			"receiver_base_url": schema.StringAttribute{
-				MarkdownDescription: "Base URL of the **receiver** service (agent downloads, install script). Defaults to `base_url` if empty (monolithic deploy).",
+				MarkdownDescription: "Base URL of the **receiver** service (agent downloads, install script). Defaults to `base_url` if empty (monolithic deploy). Falls back to `MIDDLE_MONITOR_RECEIVER_BASE_URL`.",
 				Optional:            true,
 			},
 		},
@@ -71,15 +72,15 @@ func (p *middmonitorProvider) Configure(ctx context.Context, req provider.Config
 
 	base := cfg.BaseURL.ValueString()
 	if base == "" {
-		base = os.Getenv("MIDDLE_MONITOR_BASE_URL")
+		base = envFallback("BASE_URL")
 	}
 	token := cfg.AccessToken.ValueString()
 	if token == "" {
-		token = os.Getenv("MIDDLE_MONITOR_ACCESS_TOKEN")
+		token = envFallback("ACCESS_TOKEN")
 	}
 	org := cfg.OrgSlug.ValueString()
 	if org == "" {
-		org = os.Getenv("MIDDLE_MONITOR_ORG_SLUG")
+		org = envFallback("ORG_SLUG")
 	}
 
 	if base == "" || token == "" || org == "" {
@@ -90,9 +91,12 @@ func (p *middmonitorProvider) Configure(ctx context.Context, req provider.Config
 	c := client.New(base, token, org)
 
 	// Receiver URL for data sources (defaults to base_url for monolithic deploys).
-	recv := base
-	if !cfg.ReceiverBaseURL.IsNull() && cfg.ReceiverBaseURL.ValueString() != "" {
-		recv = cfg.ReceiverBaseURL.ValueString()
+	recv := cfg.ReceiverBaseURL.ValueString()
+	if recv == "" {
+		recv = envFallback("RECEIVER_BASE_URL")
+	}
+	if recv == "" {
+		recv = base
 	}
 	resp.ResourceData = &resourceData{Client: c, ReceiverBaseURL: recv}
 	resp.DataSourceData = &resourceData{Client: c, ReceiverBaseURL: recv}
@@ -121,4 +125,15 @@ func (p *middmonitorProvider) DataSources(_ context.Context) []func() datasource
 		NewOrganizationDataSource,
 		NewAgentInstallDataSource,
 	}
+}
+
+// envFallback reads MIDDLE_MONITOR_<name>, then the MIDDMONITOR_<name> spelling.
+// The second is the prefix the documentation carried for a while: an operator
+// exporting it gets no error message, only a "required argument" on the
+// credential they did set.
+func envFallback(name string) string {
+	if value := os.Getenv("MIDDLE_MONITOR_" + name); value != "" {
+		return value
+	}
+	return os.Getenv("MIDDMONITOR_" + name)
 }
